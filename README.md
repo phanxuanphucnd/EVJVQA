@@ -1,4 +1,4 @@
-## VLSP 2022 – EVJVQA Challenge: Multilingual Visual Question Answering
+## VLSP 2022 – EVJVQA: Multilingual Visual Question Answering
 
 ### Task Description
 
