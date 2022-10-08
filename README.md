@@ -2,7 +2,7 @@
 
 ### Task Description
 
-Multilingual Visual Question Answering (mVQA) is a challenging task that has gradually gained attraction and made substantial progress in recent years. mVQA is also one of the potential tasks with a combination of Computational Linguistics and Computer Vision. Based on an image and a question about it, an mVQA system can predict correct answers in several languages. Although the task is simple for humans, it is a challenge for computers. 
+Multilingual Visual Question Answering (mVQA) is a challenging task that has gradually gained attraction and made substantial progress in recent years. mVQA is also one of the potential tasks with a combination of Computational Linguistics and Computer Vision. Based on an image and a question about it, an mVQA system can predict correct answers in several languages. Although the task is    simple for humans, it is a challenge for computers. 
 
 ![](docs/imgs/299545264.jpeg)
 
