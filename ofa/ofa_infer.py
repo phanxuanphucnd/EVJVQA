@@ -48,13 +48,13 @@ class OFAInference:
             model.prepare_for_inference_(self.cfg)
 
         # Initialize generator
-        generator = self.task.build_generator(self.models, self.cfg.generation)
+        self.generator = self.task.build_generator(self.models, self.cfg.generation)
 
         # Image transform
         mean = [0.5, 0.5, 0.5]
         std = [0.5, 0.5, 0.5]
 
-        patch_resize_transform = transforms.Compose([
+        self.patch_resize_transform = transforms.Compose([
             lambda image: image.convert("RGB"),
             transforms.Resize((self.cfg.task.patch_image_size, self.cfg.task.patch_image_size), interpolation=Image.BICUBIC),
             transforms.ToTensor(),

@@ -4,3 +4,4 @@
 from ofa.ofa_infer import OFAInference
 
 ofa = OFAInference()
+
