@@ -12,14 +12,14 @@ GPUS_PER_NODE=8
 # Number of GPU workers, for single-worker training, please set to 1
 WORKER_CNT=4 
 # The ip address of the rank-0 worker, for single-worker training, please set to localhost
-export MASTER_ADDR=XX.XX.XX.XX
+export MASTER_ADDR=127.0.0.1
 # The port for communication
 export MASTER_PORT=8214
 # The rank of this worker, should be in {0, ..., WORKER_CNT-1}, for single-worker training, please set to 0
 export RANK=0 
 
-data_dir=../../dataset/vqa_data
-data=${data_dir}/vqa_train.tsv,${data_dir}/vqa_val.tsv
+data_dir=/home/phucpx/vinbdi/EVJVQA/data/
+data=${data_dir}/evjvqa.tsv,${data_dir}/evjvqa.tsv
 # Note: If you have shuffled the data in advance, please uncomment the line below.
 # data=${data_dir}/vqa_train_1.tsv,${data_dir}/vqa_train_2.tsv,${data_dir}/vqa_train_3.tsv,${data_dir}/vqa_train_4.tsv,${data_dir}/vqa_train_5.tsv,${data_dir}/vqa_train_6.tsv,${data_dir}/vqa_train_7.tsv,${data_dir}/vqa_train_8.tsv,${data_dir}/vqa_train_9.tsv,${data_dir}/vqa_train_10.tsv,${data_dir}/vqa_val.tsv
 ans2label_file=../../dataset/vqa_data/trainval_ans2label.pkl

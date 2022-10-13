@@ -46,7 +46,7 @@ class EnViVinAITranslator:
         return en_text
 
 
-class JaEnTranslator:
+class JaEnMarianTranslator:
     def __init__(self) -> None:
         self.tokenizer_ja2en = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-jap-en")
         self.model_ja2en = MarianMTModel.from_pretrained("Helsinki-NLP/opus-mt-jap-en")
@@ -69,7 +69,7 @@ class JaEnTranslator:
 
 
 if __name__ == "__main__":
-    jaen_translator = JaEnTranslator()
+    jaen_translator = JaEnMarianTranslator()
     ja_text = jaen_translator.translate_en2ja("My name is Wolfgang and I live in Berlin")
     en_text = jaen_translator.translate_ja2en('わが 名 は シナル と い い , また " わたし は 永遠 に 生き る " と .')
 
