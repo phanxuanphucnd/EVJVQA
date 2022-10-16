@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2022 by Phuc Phan
 
-
-from re import L
 from transformers import MarianMTModel, MarianTokenizer
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
