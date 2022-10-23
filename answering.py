@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2022 by Phuc Phan
 
-
 import json
-from tkinter import N
-import httpx
 import string
-from tqdm import tqdm
-from fuzzywuzzy import fuzz
-from num2words import num2words
-from googletrans import Translator
 
+import httpx
+from fuzzywuzzy import fuzz
+from googletrans import Translator
+from num2words import num2words
+from tqdm import tqdm
 
 vi_question_type_mapping = {
     'bao nhiêu': 'HOW_MANY',
     'ở đâu': 'WHERE',
     'màu gì': 'WHAT_COLOR',
     ' ai ': 'WHO',
-    ' ai?': 'WHO'
+    ' ai?': 'WHO',
+    'làm gì': 'WHAT_DO',
+    'cái gì': 'WHAT_IS',
+    'vật gì': 'WHAT_IS',
+    'như thế nào': 'HOW'
 }
 
 vi_question_type_mapping_inversed = {
@@ -25,6 +27,9 @@ vi_question_type_mapping_inversed = {
     'WHERE': ['ở đâu'],
     'WHAT_COLOR': ['màu gì'],
     'WHO': [' ai ', ' ai?'],
+    'WHAT_DO': ['làm gì'],
+    'WHAT_IS': ['cái gì', 'vật gì'],
+    'HOW': ['như thế nào']
 }
 
 en_question_type_mapping = {
@@ -32,11 +37,18 @@ en_question_type_mapping = {
     'where': 'WHERE',
     'what color': 'WHAT_COLOR',
     'who': 'WHO',
-    'whom': 'WHO'
+    'whom': 'WHO',
+    'what is': 'WHAT_IS',
+    'what are': 'WHAT_IS',
+    'what do': 'WHAT_DO',
+    'what does': 'WHAT_DO',
+    'which': 'WHICH',
+    'how': 'HOW'
 }
 
 
-ofa_maps = ['HOW_MANY', 'WHERE', 'WHAT_COLOR', 'WHO']
+# ofa_maps = ['HOW_MANY', 'WHERE', 'WHAT_COLOR', 'WHO']
+ofa_maps = ['HOW_MANY', 'WHAT_COLOR']
 
 
 class ReWriting(object):
@@ -73,6 +85,9 @@ class ReWriting(object):
         elif language == 'en':
             for k, v in en_question_type_mapping.items():
                 if k in text.lower():
+                    if v == 'WHAT_IS':
+                        if ' do?' in text.lower() or  'doing?' in text.lower():
+                            return 'WHAT_DO'
                     return v
             
             return 'OTHERS'
@@ -189,13 +204,22 @@ class ReWriting(object):
                         else:
                             if question_type == "HOW_MANY":
                                 # split_ans = answer.split('')
-                                ans = []
-                                for w in answer:
-                                    try:
-                                        ans.append(num2words(int(w), lang='ja'))
-                                    except:
-                                        ans.append(w)
-                                answer = ''.join(ans)
+                                # ans = []
+                                # for w in answer:
+                                #     try:
+                                #         ans.append(num2words(int(w), lang='ja'))
+                                #     except:
+                                #         ans.append(w)
+                                # answer = ''.join(ans)
+                                new_answer = scratch_predicts[i]
+                                tmp_answer = []
+                                for w in new_answer:
+                                    if w.isdigit():
+                                        tmp_answer.append(answer)
+                                    else:
+                                        tmp_answer.append(w)
+
+                                answer = ''.join(tmp_answer)
                             else:
                                 answer = scratch_predicts[i]
 
@@ -216,7 +240,6 @@ class ReWriting(object):
                 else:
                     answer = scratch_predicts[i]
         
-
             return_answers[i] = answer
 
         
@@ -228,24 +251,23 @@ if __name__ == '__main__':
 
     rewriting = ReWriting()
 
-    rewriting.run(
-        ofa_predict_file='outputs/results-ofa.json',
-        scratch_predict_file='outputs/results-0.24.json',
-        test_file='data/test/official_evjvqa_public_test_lang_qtype.json'
-    )
+    # rewriting.run(
+    #     ofa_predict_file='outputs/results-ofa.json',
+    #     scratch_predict_file='outputs/results-0.234.json',
+    #     test_file='data/test/official_evjvqa_public_test_lang_qtype.json'
+    # )
 
 
 
-    # with open('data/test/official_evjvqa_public_test_lang.json', 'r', encoding='utf-8') as f:
-    #     test_data = json.load(f)
+    with open('data/test/official_evjvqa_public_test_lang_qtype.json', 'r', encoding='utf-8') as f:
+        test_data = json.load(f)
 
-    # annotations = test_data['annotations']
+    annotations = test_data['annotations']
 
-    # for anno in tqdm(annotations):
-    #     qtype = rewriting.check_question_type(anno['question'], language=anno['language'])
-    #     anno['question_type'] = qtype
+    for anno in tqdm(annotations):
+        if anno['question_type'] == 'OTHERS':
+            qtype = rewriting.check_question_type(anno['question'], language=anno['language'])
+            anno['question_type'] = qtype
 
-    # with open('data/test/official_evjvqa_public_test_lang_qtype.json', 'w', encoding='utf-8') as f:
-    #     json.dump(test_data, f, indent=4, ensure_ascii=False)
-
-
+    with open('data/test/official_evjvqa_public_test_lang_qtype-detailed.json', 'w', encoding='utf-8') as f:
+        json.dump(test_data, f, indent=4, ensure_ascii=False)
