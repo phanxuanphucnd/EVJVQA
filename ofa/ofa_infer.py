@@ -16,7 +16,7 @@ from ofa.utils.zero_shot_utils import zero_shot_step
 
 
 class OFAInference:
-    def __init__(self, pretrained_path="./models/ofa_huge.pt", bpe_dir="ofa/utils/BPE") -> None:
+    def __init__(self, pretrained_path="./models/ofa_huge.pt", bpe_dir="ofa/utils/BPE", is_cn=False) -> None:
         # Register VQA task
         tasks.register_task('vqa_gen',VqaGenTask)
 
@@ -27,7 +27,10 @@ class OFAInference:
 
         # specify some options for evaluation
         parser = options.get_generation_parser()
-        input_args = ["", "--task=vqa_gen", "--beam=100", "--unnormalized", f"--path={pretrained_path}", f"--bpe-dir={bpe_dir}"]
+        if not is_cn:
+            input_args = ["", "--task=vqa_gen", "--beam=100", "--unnormalized", f"--path={pretrained_path}", f"--bpe-dir={bpe_dir}"]
+        else:
+            input_args = ["", "--task=vqa_gen", "--beam=100", "--unnormalized", f"--path={pretrained_path}", f"--bpe-dir=/home/phucpx/phucpx/EVJVQA/ofa/utils/BERT_CN_dict", f"--bpe=bert"]
         args = options.parse_args_and_arch(parser, input_args)
         self.cfg = convert_namespace_to_omegaconf(args)
 
