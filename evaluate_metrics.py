@@ -7,7 +7,7 @@ import numpy as np
 import copy
 import math
 from collections import defaultdict
-
+from typing import Dict, List, Any
 
 def is_japanese_sentence(text: str):
     # REFERENCE UNICODE TABLES: 
@@ -32,8 +32,12 @@ def is_japanese_sentence(text: str):
     pattern = r"[\u3000-\u303F]|[\u3040-\u309F]|[\u30A0-\u30FF]|[\uFF00-\uFFEF]|[\u4E00-\u9FAF]|[\u2605-\u2606]|[\u2190-\u2195]|\u203B"
     return re.search(pattern, text) is not None
 
-def normalize_answer(s):
-    if is_japanese_sentence(s): # if the answer is Japanese
+def is_vietnamese_sentence(text: str):
+    pattern = r"[áàảãạúùủũụýỳỷỹỵíìỉĩịóòỏõọốồổỗộớờởỡợéèẻẽẹếềểễệđ]"
+    return re.search(pattern, text) is not None
+
+def normalize_answer(s, is_japanese: False):
+    if is_japanese: # if the answer is Japanese then treat each string as tokens
         return list(s)
     else: # else normalize the Vietnamese and English answer, lower text, remove punctuation and articles
         def remove_punc(text):
@@ -45,41 +49,100 @@ def normalize_answer(s):
         return remove_punc(lower(s)).split()
 
 # compute accuracy function
-def compute_acc(a_gold, a_pred):
-    res = {key: normalize_answer(answer) for key, answer in a_gold.items()}
-    gts = {key: normalize_answer(answer) for key, answer in a_pred.items()}
-    scores = []
-    for key in res:
-        r = res[key]
-        gt = gts[key]
-        scores_per_res = []
-        # if either the prediction or the truth is no-answer then f1 = 1 if they agree, 0 otherwise
-        if len(r) == 0 or len(gt) == 0:
-            scores_per_res.append(int(r == gt))
-        else:
-            common_tokens = set(r) & set(gt)
-            # if there are no common tokens then f1 = 0
-            if len(common_tokens) == 0:
-                scores_per_res.append(0)
-            else:
-                scores_per_res.append(len(common_tokens)/len(r))
-
-        scores_per_res = np.array(scores_per_res).mean()
-        scores.append(scores_per_res)
+def compute_f1(a_gold: Dict[Any, str], a_pred: Dict[Any, str]):
+    gts = {}
+    res = {}
+    for key in a_gold:
+        answer = a_gold[key]
+        gts[key] = normalize_answer(a_gold[key], is_japanese_sentence(answer))
+        res[key] = normalize_answer(a_pred[key], is_japanese_sentence(answer))
     
-    return np.array(scores).mean()
+    f1 = F1()
+    score = f1.compute_score(gts, res)
+
+    return score
 
 # compute avg. BLEU score
-def compute_ag_bleu(a_gold, a_pred):
+def compute_avg_bleu(a_gold, a_pred):
+    gts = {}
+    res = {}
+    for key in a_gold:
+        answer = a_gold[key]
+        gts[key] = [" ".join(normalize_answer(a_gold[key], is_japanese_sentence(answer)))]
+        res[key] = [" ".join(normalize_answer(a_pred[key], is_japanese_sentence(answer)))]
 
     bleu = Bleu()
-
-    res = {key: [" ".join(normalize_answer(answer)), ] for key, answer in a_gold.items()}
-    gts = {key: [" ".join(normalize_answer(answer)), ] for key, answer in a_pred.items()}
-
     scores, _ = bleu.compute_score(gts, res)
 
     return np.array(scores).mean()
+
+class Precision:
+    def compute_score(self, gts: Dict[Any, List[str]], res: Dict[Any, List[str]]):
+        assert(gts.keys() == res.keys()), "gts and res must have exactly the same keys"
+        assert isinstance(gts, dict), "gts must be a dict where values are lists of strings"
+        assert isinstance(res, dict), "res must be a dict where values are lists of strings"
+        scores = []
+        for key in gts:
+            gt = gts[key]
+            r = res[key]
+            common = set(gt) & set(r)
+            scores.append(len(common) / len(set(r)))
+
+        return np.array(scores).mean()
+
+class Recall:
+    def compute_score(self, gts: Dict[Any, List[str]], res: Dict[Any, List[str]]):
+        assert(gts.keys() == res.keys()), "gts and res must have exactly the same keys"
+        assert isinstance(gts, dict), "gts must be a dict where values are lists of strings"
+        assert isinstance(res, dict), "res must be a dict where values are lists of strings"
+        scores = []
+        for key in gts:
+            gt = gts[key]
+            r = res[key]
+            common = set(gt) & set(r)
+            scores.append(len(common) / len(set(gt)))
+
+        return np.array(scores).mean()
+
+class F1:
+    def precision(self, gt: List[str], r: List[str]) -> float:
+        common = set(gt) & set(r)
+        return len(common) / len(set(r))
+
+    def recall(self, gt: List[str], r: List[str]) -> float:
+        common = set(gt) & set(r)
+        return len(common) / len(set(gt))
+
+    def compute(self, gt: List[str], r: List[str]) -> float:
+        # if either the prediction or the truth is no-answer then f1 = 1 if they agree, 0 otherwise
+        if len(r) == 0:
+            return 0
+
+        if len(r) == 0 or len(gt) == 0:
+            return int(r = gt)
+
+        precision = self.precision(gt, r)
+        recall = self.recall(gt, r)
+
+        if precision == 0 or recall == 0:
+            return 0
+
+        f1 = 2*precision*recall / (precision+recall)
+
+        return f1
+
+    def compute_score(self, gts: Dict[Any, List[str]], res: Dict[Any, List[str]]):
+        assert isinstance(gts, dict), "gts must be a dict where values are lists of strings"
+        assert isinstance(res, dict), "res must be a dict where values are lists of strings"
+        assert(gts.keys() == res.keys()), "gts and res must have exactly the same keys"
+
+        scores = []
+        for key in gts:
+            gt = gts[key]
+            r = res[key]
+            scores.append(self.compute(gt, r))
+
+        return np.array(scores).mean()
 
 def precook(s, n=4, out=False):
     """Takes a string as input and returns an object that can be given to
@@ -337,7 +400,7 @@ class Bleu:
         self._hypo_for_image = {}
         self.ref_for_image = {}
 
-    def compute_score(self, gts, res):
+    def compute_score(self, gts: Dict[Any, List[str]], res: Dict[Any, List[str]]):
 
         assert(gts.keys() == res.keys())
         imgIds = gts.keys()
@@ -366,20 +429,18 @@ class Bleu:
 if __name__ == "__main__":
     try:
         [_, input_dir, output_dir] = sys.argv
-        submission_dir = os.path.join(input_dir, 'res')
-        truth_dir = os.path.join(input_dir, 'ref')
 
-        with open(os.path.join(truth_dir, 'ground_truth.json')) as f:
+        with open(os.path.join(input_dir, 'ground_truth.json')) as f:
             ground_truth = json.load(f)
         
-        with open(os.path.join(submission_dir, 'results.json')) as f:
+        with open(os.path.join(input_dir, 'results.json')) as f:
             results = json.load(f)
 
-        accuracy = compute_acc(ground_truth, results)
-        bleu = compute_ag_bleu(ground_truth, results)
+        f1 = compute_f1(ground_truth, results)
+        bleu = compute_avg_bleu(ground_truth, results)
 
         with open(os.path.join(output_dir, 'scores.txt'), 'w') as output_file:
-            output_file.write("ACC: {:f}\nBLEU: {:f}".format(accuracy, bleu))
+            output_file.write("F1: {:f}\nBLEU: {:f}".format(f1, bleu))
 
     except Exception as e:
         with open(os.path.join(output_dir, 'scores.txt'), 'w') as output_file:
