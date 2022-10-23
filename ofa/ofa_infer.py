@@ -135,7 +135,7 @@ class OFAInference:
         sample = self.construct_sample(image, question)
         sample = utils.move_to_cuda(sample) if self.use_cuda else sample
         sample = utils.apply_to_sample(self.apply_half, sample) if self.use_fp16 else sample
-git 
+
         # Run eval step for open-domain VQA
         with torch.no_grad():
             result, scores = zero_shot_step(self.task, self.generator, self.models, sample)
