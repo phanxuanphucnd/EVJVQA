@@ -259,15 +259,15 @@ if __name__ == '__main__':
 
 
 
-    with open('data/test/official_evjvqa_public_test_lang_qtype.json', 'r', encoding='utf-8') as f:
-        test_data = json.load(f)
+        # with open('data/test/official_evjvqa_public_test_lang_qtype.json', 'r', encoding='utf-8') as f:
+        #     test_data = json.load(f)
 
-    annotations = test_data['annotations']
+        # annotations = test_data['annotations']
 
-    for anno in tqdm(annotations):
-        if anno['question_type'] == 'OTHERS':
-            qtype = rewriting.check_question_type(anno['question'], language=anno['language'])
-            anno['question_type'] = qtype
+        # for anno in tqdm(annotations):
+        #     if anno['question_type'] == 'OTHERS':
+        #         qtype = rewriting.check_question_type(anno['question'], language=anno['language'])
+        #         anno['question_type'] = qtype
 
-    with open('data/test/official_evjvqa_public_test_lang_qtype-detailed.json', 'w', encoding='utf-8') as f:
-        json.dump(test_data, f, indent=4, ensure_ascii=False)
+        # with open('data/test/official_evjvqa_public_test_lang_qtype-detailed.json', 'w', encoding='utf-8') as f:
+        #     json.dump(test_data, f, indent=4, ensure_ascii=False)
