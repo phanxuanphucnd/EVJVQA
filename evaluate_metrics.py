@@ -115,11 +115,8 @@ class F1:
 
     def compute(self, gt: List[str], r: List[str]) -> float:
         # if either the prediction or the truth is no-answer then f1 = 1 if they agree, 0 otherwise
-        if len(r) == 0:
-            return 0
-
         if len(r) == 0 or len(gt) == 0:
-            return int(r = gt)
+            return int(r == gt)
 
         precision = self.precision(gt, r)
         recall = self.recall(gt, r)
