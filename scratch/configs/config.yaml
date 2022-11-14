@@ -1,0 +1,29 @@
+data:
+  train_root: datasets/train-images
+  train_file: datasets/evjvqa_train_full.json
+  valid_root: datasets/public-test-images
+  valid_file: datasets/evjvqa_public_test-lang-qtype-answer.json
+  test_root: datasets/private-test-images
+  test_file: datasets/evjvqa_private_test-desc-lang-qtype.json
+
+model:
+  pretrained: google/mt5-base
+  pretrained_type: mt5
+  # pretrained: facebook/xglm-564M
+  # pretrained_type: xglm
+  visual_pretrained: facebook/deit-base-patch16-224
+
+training:
+  n_epochs: 50
+  lr: 0.0001
+  bs: 16
+  output_dir: outputs/mt5_vit
+  save_all: False
+  save_last: True
+
+inference:
+  bs: 16
+  file_path: outputs/mt5_deit/deit-best-06-11-2022.pt
+
+seed: 42
+device: cuda

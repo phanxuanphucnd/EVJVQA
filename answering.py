@@ -3,12 +3,14 @@
 
 import json
 import string
-
 import httpx
+
+from tqdm import tqdm
 from fuzzywuzzy import fuzz
 from googletrans import Translator
 from num2words import num2words
-from tqdm import tqdm
+from langdetect import detect
+
 
 vi_question_type_mapping = {
     'bao nhiêu': 'HOW_MANY',
@@ -36,8 +38,8 @@ en_question_type_mapping = {
     'how many': 'HOW_MANY',
     'where': 'WHERE',
     'what color': 'WHAT_COLOR',
-    'who': 'WHO',
     'whom': 'WHO',
+    'who': 'WHO',
     'what is': 'WHAT_IS',
     'what are': 'WHAT_IS',
     'what do': 'WHAT_DO',
@@ -53,7 +55,7 @@ ofa_maps = ['HOW_MANY', 'WHAT_COLOR']
 
 class ReWriting(object):
     def __init__(self) -> None:
-        timeout = httpx.Timeout(30) 
+        timeout = httpx.Timeout(120) 
         self.gg_translator = Translator(timeout=timeout)
         self.vi_num2words_dict  ={
             0: 'không',
@@ -259,7 +261,7 @@ if __name__ == '__main__':
 
 
     #TODO: Run identify Question Type
-    with open('data/test/official_evjvqa_public_test_lang_qtype.json', 'r', encoding='utf-8') as f:
+    with open('data/private-test/evjvqa_private_test-desc-lang.json', 'r', encoding='utf-8') as f:
         test_data = json.load(f)
 
     annotations = test_data['annotations']
@@ -269,5 +271,5 @@ if __name__ == '__main__':
         qtype = rewriting.check_question_type(anno['question'], language=anno['language'])
         anno['question_type'] = qtype
 
-    with open('data/test/official_evjvqa_public_test_lang_qtype-detailed.json', 'w', encoding='utf-8') as f:
+    with open('data/private-test/evjvqa_private_test-desc-lang-qtype.json', 'w', encoding='utf-8') as f:
         json.dump(test_data, f, indent=4, ensure_ascii=False)
